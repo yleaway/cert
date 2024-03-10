@@ -70,8 +70,8 @@ if [ ! -d "$cert_dir" ]; then
 fi
 
 # Copy generated certificate to /root/cert directory
-cp /etc/letsencrypt/live/*/fullchain.pem "$cert_dir/fullchain.crt"
-cp /etc/letsencrypt/live/*/privkey.pem "$cert_dir/private.key"
+cp /etc/letsencrypt/live/$domain/fullchain.pem "$cert_dir/fullchain.crt"
+cp /etc/letsencrypt/live/$domain/privkey.pem "$cert_dir/private.key"
 
 # Start Nginx service if it was stopped
 if systemctl is-active --quiet nginx; then
