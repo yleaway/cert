@@ -61,12 +61,15 @@ case $mode in
         ;;
 esac
 
-# Copy generated certificate to /root/cert directory
+# Define certificate directory
 cert_dir="/root/cert"
+
+# Create directory if it doesn't exist
 if [ ! -d "$cert_dir" ]; then
     mkdir -p "$cert_dir"
 fi
 
+# Copy generated certificate to /root/cert directory
 cp /etc/letsencrypt/live/*/fullchain.pem "$cert_dir/fullchain.crt"
 cp /etc/letsencrypt/live/*/privkey.pem "$cert_dir/private.key"
 
