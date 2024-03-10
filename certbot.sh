@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Function to stop Nginx service
+# Function to stop Nginx service if it is running
 stop_nginx() {
-    systemctl stop nginx
-}
-
-# Function to start Nginx service
-start_nginx() {
-    systemctl start nginx
+    if systemctl is-active --quiet nginx; then
+        systemctl stop nginx
+    else
+        echo "Nginx is not running. Skipping stop."
+        return 0
+    fi
 }
 
 # Function to generate certificate using Standalone mode
@@ -31,7 +31,7 @@ generate_dns_certificate() {
 
 # Main script
 
-# Stop Nginx service
+# Stop Nginx service if it is running
 stop_nginx
 
 # Choose certificate generation mode
@@ -49,7 +49,6 @@ case $mode in
         ;;
     *)
         echo "Invalid choice. Exiting."
-        start_nginx
         exit 1
         ;;
 esac
@@ -63,8 +62,10 @@ fi
 cp /etc/letsencrypt/live/*/fullchain.pem "$cert_dir/fullchain.crt"
 cp /etc/letsencrypt/live/*/privkey.pem "$cert_dir/private.key"
 
-# Restart Nginx service
-start_nginx
+# Start Nginx service if it was stopped
+if systemctl is-active --quiet nginx; then
+    systemctl start nginx
+fi
 
 # Renew certificate every 60 days
 (crontab -l ; echo "0 0 */60 * * certbot renew --quiet") | crontab -
