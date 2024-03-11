@@ -30,6 +30,9 @@ mount -o loop,offset=$root_partition "$firmware_file" /root/op
 # Change directory to the mounted partition
 cd /root/op || exit 1
 
+# Get the base name of the file without extension
+filename=$(basename "$firmware_url" | sed 's/\.img\.gz$//')
+
 # Create a tar.gz archive of the files and move it to the template cache directory
 tar zcf "/var/lib/vz/template/cache/$filename.tar.gz" * 
 
