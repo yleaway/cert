@@ -1,57 +1,40 @@
 #!/bin/bash
 
-# 检查参数是否正确
-if [ $# -ne 0 ]; then
-    echo "用法: $0"
+# Prompt the user to input the firmware download URL
+read -p "请输入固件下载网址: " firmware_url
+
+# Extract filename from URL
+filename=$(basename "$firmware_url")
+
+# Download the firmware file
+wget "$firmware_url" -P /root/
+
+# Check if the downloaded file is a .img or .img.gz file
+if [[ "$filename" == *.img ]]; then
+    firmware_file="/root/$filename"
+elif [[ "$filename" == *.img.gz ]]; then
+    # Extract the .img.gz file to .img
+    gunzip "/root/$filename"
+    firmware_file="/root/${filename%.gz}"
+else
+    echo "不支持的文件格式。"
     exit 1
 fi
 
-# 获取固件下载URL
-read -p "请输入固件下载地址: " firmware_url
+# Get the partition offset
+root_partition=$((`fdisk -l "$firmware_file" | grep .img2 | awk '{print $2}'` * 512))
 
-# 下载固件
-echo "正在下载固件..."
-wget -q "$firmware_url" -O firmware.img.gz
-if [ $? -ne 0 ]; then
-    echo "错误: 下载固件失败"
-    exit 1
-fi
+# Mount the second partition
+mount -o loop,offset=$root_partition "$firmware_file" /root/op
 
-# 提取文件名（不包含扩展名）
-filename=$(basename "$firmware_url" | sed 's/\.[^.]*$//')
+# Change directory to the mounted partition
+cd /root/op || exit 1
 
-# 解压缩固件（如果是img.gz格式）
-if [[ "$firmware_url" == *".gz" ]]; then
-    echo "正在解压缩固件..."
-    gunzip -f firmware.img.gz || echo "警告: 解压缩固件失败"
-fi
+# Create a tar.gz archive of the files and move it to the template cache directory
+tar zcf "/var/lib/vz/template/cache/$filename.tar.gz" * 
 
-# 创建临时目录
-temp_dir=$(mktemp -d)
-if [ $? -ne 0 ]; then
-    echo "错误: 无法创建临时目录"
-    exit 1
-fi
+# Move back to the original directory
+cd ..
 
-# 挂载IMG文件到临时目录
-sudo mount -o loop firmware.img "$temp_dir"
-if [ $? -ne 0 ]; then
-    echo "错误: 无法挂载IMG文件到临时目录"
-    rm -rf "$temp_dir"
-    exit 1
-fi
-
-# 创建tar.gz文件
-output_tar_gz="$PWD/$filename.tar.gz"
-tar -czf "$output_tar_gz" -C "$temp_dir" .
-
-# 卸载临时目录
-sudo umount "$temp_dir"
-if [ $? -ne 0 ]; then
-    echo "警告: 无法卸载临时目录，请手动卸载：sudo umount $temp_dir"
-fi
-
-# 删除临时目录和下载的固件文件
-rm -rf "$temp_dir" firmware.img firmware.img.gz
-
-echo "转换完成: $output_tar_gz"
+# Unmount the partition and remove the image file
+umount /root/op && rm -rf "$firmware_file"
