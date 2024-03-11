@@ -23,11 +23,7 @@ filename=$(basename "$firmware_url" | sed 's/\.[^.]*$//')
 # 解压缩固件（如果是img.gz格式）
 if [[ "$firmware_url" == *".gz" ]]; then
     echo "正在解压缩固件..."
-    gunzip -f firmware.img.gz
-    if [ $? -ne 0 ]; then
-        echo "错误: 解压缩固件失败"
-        exit 1
-    fi
+    gunzip -f firmware.img.gz || echo "警告: 解压缩固件失败"
 fi
 
 # 创建临时目录
