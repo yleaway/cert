@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # 检查参数是否正确
-if [ $# -ne 1 ]; then
-    echo "用法: $0 <固件下载地址>"
+if [ $# -ne 0 ]; then
+    echo "用法: $0"
     exit 1
 fi
 
 # 获取固件下载URL
-firmware_url=$1
+read -p "请输入固件下载地址: " firmware_url
 
 # 下载固件
 echo "正在下载固件..."
