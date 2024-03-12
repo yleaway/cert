@@ -74,7 +74,7 @@ fi
 tar zcf "$archive_path" * || { echo -e "${RED}创建归档文件失败。${NC}"; exit 1; }
 
 # Display success message and archive file path
-echo -e "${GREEN}归档文件创建成功${NC}"：${archive_path}
+echo -e "${GREEN}固件文件创建成功${NC}"：${archive_path}
 
 # Move back to the original directory
 cd ..
