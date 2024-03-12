@@ -71,10 +71,10 @@ else
 fi
 
 # Create a tar.gz archive of the files and move it to the specified or default path
-tar zcf "$archive_path" * || { echo -e "${RED}创建归档文件失败。${NC}"; exit 1; }
+tar zcf "$archive_path" * || { echo -e "${RED}创建固件失败${NC}"; exit 1; }
 
 # Display success message and archive file path
-echo -e "${GREEN}固件文件创建成功${NC}"：${archive_path}
+echo -e "${GREEN}创建固件成功${NC}"：${archive_path}
 
 # Move back to the original directory
 cd ..
@@ -86,10 +86,10 @@ read -p "是否删除源文件 ($firmware_file)？(y/N): " confirm_delete
 if [[ "$confirm_delete" == "Y" || "$confirm_delete" == "y" ]]; then
     # Delete the source file
     rm -rf "$firmware_file"
-    echo -e "${GREEN}源文件已删除。${NC}"
+    echo -e "${GREEN}源文件已删除${NC}"
 else
-    echo -e "${RED}源文件未删除，请手动删除。${NC}"
+    echo -e "${RED}源文件未删除，请手动删除${NC}"
 fi
 
 # Unmount the partition
-umount /root/op || { echo -e "${RED}卸载分区失败。${NC}"; exit 1; }
+umount /root/op || { echo -e "${RED}卸载分区失败${NC}"; exit 1; }
