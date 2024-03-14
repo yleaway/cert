@@ -16,17 +16,17 @@ if [[ "$firmware_path" =~ ^https?:// || "$firmware_path" =~ ^/ ]]; then
         filename=$(basename "$firmware_path")
 
         # Download the firmware file
-        wget "$firmware_path" -P /root/ || { echo -e "${RED}下载固件文件失败。${NC}"; exit 1; }
+        wget "$firmware_path" -P /root/ || { echo -e "${RED}下载固件文件失败${NC}"; exit 1; }
 
         # Check if the downloaded file is a .img or .img.gz file
         if [[ "$filename" == *.img ]]; then
             firmware_file="/root/$filename"
         elif [[ "$filename" == *.img.gz ]]; then
             # Extract the .img.gz file to .img
-            gunzip "/root/$filename" || { echo -e "${RED}解压固件文件失败。${NC}"; exit 1; }
+            gunzip "/root/$filename" || echo -e "${RED}如果出现decompression OK, trailing garbage ignored无需理会${NC}"
             firmware_file="/root/${filename%.gz}"
         else
-            echo "不支持的文件格式。"
+            echo "不支持的文件格式"
             exit 1
         fi
     else
@@ -34,7 +34,7 @@ if [[ "$firmware_path" =~ ^https?:// || "$firmware_path" =~ ^/ ]]; then
         firmware_file="$firmware_path"
     fi
 else
-    echo "无效的输入。请输入固件下载地址或者固件本地路径。"
+    echo "无效的输入。请输入固件下载地址或者固件本地路径"
     exit 1
 fi
 
@@ -42,11 +42,11 @@ fi
 root_partition=$((`fdisk -l "$firmware_file" | grep .img2 | awk '{print $2}'` * 512))
 
 # Mount the second partition
-mount -o loop,offset=$root_partition "$firmware_file" /root/op || { echo -e "${RED}挂载分区失败。${NC}"; exit 1; }
+mount -o loop,offset=$root_partition "$firmware_file" /root/op || { echo -e "${RED}挂载分区失败${NC}"; exit 1; }
 
 # Verify mount point exists
 if [ ! -d "/root/op" ]; then
-    echo -e "${RED}挂载点不存在。${NC}"
+    echo -e "${RED}挂载点不存在${NC}"
     exit 1
 fi
 
@@ -71,7 +71,7 @@ else
 fi
 
 # Create a tar.gz archive of the files and move it to the specified or default path
-tar zcf "$archive_path" * || { echo -e "${RED}创建固件失败${NC}"; exit 1; }
+tar zcf "$archive_path" * || echo -e "${RED}创建固件失败${NC}"
 
 # Display success message and archive file path
 echo -e "${GREEN}创建固件成功${NC}"：${archive_path}
