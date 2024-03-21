@@ -26,7 +26,7 @@ if [[ "$firmware_path" =~ ^https?:// || "$firmware_path" =~ ^/ ]]; then
             firmware_file="$temp_dir/$filename"
         elif [[ "$filename" == *.img.gz ]]; then
             # Extract the .img.gz file to .img
-            gunzip "$temp_dir/$filename" || echo -e "${RED}如果出现decompression OK, trailing garbage ignored无需理会${NC}"
+            gunzip "$temp_dir/$filename" || echo -e "${RED}如果出现decompression OK, trailing garbage ignored提示,请忽略${NC}"
             firmware_file="$temp_dir/${filename%.gz}"
         else
             echo "不支持的文件格式"
