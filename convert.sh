@@ -5,6 +5,9 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
+# Create /root/op directory if it doesn't exist
+mkdir -p /root/op
+
 # Prompt the user to input the firmware download URL or local path
 read -p "请输入固件下载地址或者固件本地路径: " firmware_path
 
@@ -93,3 +96,6 @@ fi
 
 # Unmount the partition
 umount /root/op || { echo -e "${RED}卸载分区失败${NC}"; exit 1; }
+
+# Create /root/op directory
+rm -rf /root/op
