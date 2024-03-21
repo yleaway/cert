@@ -5,8 +5,8 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-# Create /root/op directory if it doesn't exist
-mkdir -p /root/op
+# Create a random temporary directory under /root
+temp_dir=$(mktemp -d /root/tmp.XXXXXXXXXX)
 
 # Prompt the user to input the firmware download URL or local path
 read -p "请输入固件下载地址或者固件本地路径: " firmware_path
@@ -19,15 +19,15 @@ if [[ "$firmware_path" =~ ^https?:// || "$firmware_path" =~ ^/ ]]; then
         filename=$(basename "$firmware_path")
 
         # Download the firmware file
-        wget "$firmware_path" -P /root/ || { echo -e "${RED}下载固件文件失败${NC}"; exit 1; }
+        wget "$firmware_path" -P "$temp_dir" || { echo -e "${RED}下载固件文件失败${NC}"; exit 1; }
 
         # Check if the downloaded file is a .img or .img.gz file
         if [[ "$filename" == *.img ]]; then
-            firmware_file="/root/$filename"
+            firmware_file="$temp_dir/$filename"
         elif [[ "$filename" == *.img.gz ]]; then
             # Extract the .img.gz file to .img
-            gunzip "/root/$filename" || echo -e "${RED}如果出现decompression OK, trailing garbage ignored无需理会${NC}"
-            firmware_file="/root/${filename%.gz}"
+            gunzip "$temp_dir/$filename" || echo -e "${RED}如果出现decompression OK, trailing garbage ignored无需理会${NC}"
+            firmware_file="$temp_dir/${filename%.gz}"
         else
             echo "不支持的文件格式"
             exit 1
@@ -45,16 +45,16 @@ fi
 root_partition=$((`fdisk -l "$firmware_file" | grep .img2 | awk '{print $2}'` * 512))
 
 # Mount the second partition
-mount -o loop,offset=$root_partition "$firmware_file" /root/op || { echo -e "${RED}挂载分区失败${NC}"; exit 1; }
+mount -o loop,offset=$root_partition "$firmware_file" "$temp_dir" || { echo -e "${RED}挂载分区失败${NC}"; exit 1; }
 
 # Verify mount point exists
-if [ ! -d "/root/op" ]; then
+if [ ! -d "$temp_dir" ]; then
     echo -e "${RED}挂载点不存在${NC}"
     exit 1
 fi
 
 # Change directory to the mounted partition
-cd /root/op || exit 1
+cd "$temp_dir" || exit 1
 
 # Get the base name of the file without extension
 filename=$(basename "$firmware_file" | sed 's/\(\.img\|\.img\.gz\|\.gz\)$//')
@@ -95,7 +95,7 @@ else
 fi
 
 # Unmount the partition
-umount /root/op || { echo -e "${RED}卸载分区失败${NC}"; exit 1; }
+umount "$temp_dir" || { echo -e "${RED}卸载分区失败${NC}"; exit 1; }
 
-# Create /root/op directory
-rm -rf /root/op
+# Delete the temporary directory
+rm -rf "$temp_dir"
