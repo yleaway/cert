@@ -34,7 +34,8 @@ EOF
         --dns-cloudflare \
         --dns-cloudflare-credentials ~/.secrets/cloudflare.ini \
         --dns-cloudflare-propagation-seconds 60 \
-        -d $domain
+        -d $domain \
+        -d *.$domain
 }
 
 # Main script
