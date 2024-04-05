@@ -10,10 +10,18 @@ stop_nginx() {
     fi
 }
 
+# Create directory if it doesn't exist
+if [ ! -d /root/cert/ ] || [ ! -d /root/.secrets/ ]; then
+    mkdir -p /root/cert/ /root/.secrets/
+fi
+
 # Function to generate certificate using Standalone mode
 generate_standalone_certificate() {
     read -p "Enter domain name: " domain
-    certbot certonly --standalone -d $domain
+    certbot certonly --standalone -d $domain \
+    --cert-name $domain \
+    --fullchain-path /root/cert/fullchain.crt \
+    --key-path /root/cert/private.key
 }
 
 # Function to generate certificate using DNS mode with Cloudflare
@@ -33,7 +41,10 @@ EOF
         --dns-cloudflare-credentials ~/.secrets/cloudflare.ini \
         --dns-cloudflare-propagation-seconds 60 \
         -d $domain \
-        -d *.$domain
+        -d *.$domain \
+        --cert-name $domain \
+        --fullchain-path /root/cert/fullchain.crt \
+        --key-path /root/cert/private.key
 }
 
 # Main script
@@ -59,18 +70,6 @@ case $mode in
         exit 1
         ;;
 esac
-
-# Define certificate directory
-cert_dir="/root/cert"
-
-# Create directory if it doesn't exist
-if [ ! -d "$cert_dir" ]; then
-    mkdir -p "$cert_dir"
-fi
-
-# Copy generated certificate to /root/cert directory
-cp /etc/letsencrypt/live/$domain/fullchain.pem "$cert_dir/fullchain.crt"
-cp /etc/letsencrypt/live/$domain/privkey.pem "$cert_dir/private.key"
 
 # Start Nginx service if it was stopped
 if systemctl is-active --quiet nginx; then
