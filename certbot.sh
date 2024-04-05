@@ -19,9 +19,9 @@ fi
 generate_standalone_certificate() {
     read -p "Enter domain name: " domain
     certbot certonly --standalone -d $domain \
-    --cert-name $domain \
-    --fullchain-path /root/cert/fullchain.crt \
-    --key-path /root/cert/private.key
+        --cert-name $domain \
+        --fullchain-path /root/cert/fullchain.crt \
+        --key-path /root/cert/private.key
 }
 
 # Function to generate certificate using DNS mode with Cloudflare
@@ -77,4 +77,4 @@ if systemctl is-active --quiet nginx; then
 fi
 
 # Renew certificate every 60 days
-(crontab -l ; echo "0 0 */60 * * certbot renew --quiet") | crontab -
+(crontab -l ; echo '0 0 */60 * * certbot renew --quiet --pre-hook "service nginx stop" --post-hook "service nginx start"') | crontab -
