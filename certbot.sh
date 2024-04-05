@@ -19,14 +19,12 @@ generate_standalone_certificate() {
 # Function to generate certificate using DNS mode with Cloudflare
 generate_dns_certificate() {
     read -p "Enter domain name: " domain
-    read -p "Enter Cloudflare email: " cloudflare_email
-    read -p "Enter Cloudflare API key: " cloudflare_api_key
+    read -p "Enter Cloudflare API Token: " cloudflare_api_token
 
     # Write Cloudflare credentials to .secrets/cloudflare.ini file
     cat > ~/.secrets/cloudflare.ini <<EOF
 # Cloudflare API credentials used by Certbot
-dns_cloudflare_email = $cloudflare_email
-dns_cloudflare_api_key = $cloudflare_api_key
+dns_cloudflare_api_token = $cloudflare_api_token
 EOF
 
     chmod 600 ~/.secrets/cloudflare.ini  # Ensure correct permissions
