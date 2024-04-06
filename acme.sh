@@ -1,22 +1,9 @@
 #!/bin/bash
 
-# Function to stop Nginx service if it is running
-stop_nginx() {
-    if systemctl is-active --quiet nginx; then
-        systemctl stop nginx
-    else
-        echo "Nginx is not running. Skipping stop."
-        return 0
-    fi
-}
-
 # Create directory if it doesn't exist
-if [ ! -d /root/cert/ ] || [ ! -d /root/.secrets/ ]; then
-    mkdir -p /root/cert/ /root/.secrets/
+if [ ! -d /root/cert ]; then
+    mkdir -p /root/cert
 fi
-
-# Stop Nginx service if it is running
-stop_nginx
 
 # Function to generate certificate using Standalone mode
 generate_standalone_certificate() {
@@ -82,7 +69,3 @@ case $mode in
         exit 1
         ;;
 esac
-
-# Renew certificate every 60 days
-(crontab -l ; echo '0 0 */60 * * service nginx stop && ~/.acme.sh/acme.sh --cron --force && service nginx start') | crontab -
-
