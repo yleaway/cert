@@ -10,17 +10,31 @@ generate_standalone_certificate() {
     read -p "Enter email address: " email
     read -p "Enter domain name: " domain
 
+    # Check if nginx is running
+    nginx_running=$(ps -ef | grep -v grep | grep nginx)
+
     # Generate certificate
-    ~/.acme.sh/acme.sh \
-        --register-account -m $email \
-    && ~/.acme.sh/acme.sh \
-        --issue -d $domain --standalone \
-           --pre-hook "service nginx stop" \
-    && ~/.acme.sh/acme.sh \
-        --install-cert -d $domain \
-        --key-file /root/cert/private.key \
-        --fullchain-file /root/cert/fullchain.crt \
-        --post-hook "service nginx start"
+    if [ -n "$nginx_running" ]; then
+        ~/.acme.sh/acme.sh \
+            --register-account -m $email \
+        && ~/.acme.sh/acme.sh \
+            --issue -d $domain --standalone \
+            --pre-hook "service nginx stop" \
+        && ~/.acme.sh/acme.sh \
+            --install-cert -d $domain \
+            --key-file /root/cert/private.key \
+            --fullchain-file /root/cert/fullchain.crt \
+            --post-hook "service nginx start"
+    else
+        ~/.acme.sh/acme.sh \
+            --register-account -m $email \
+        && ~/.acme.sh/acme.sh \
+            --issue -d $domain --standalone \
+        && ~/.acme.sh/acme.sh \
+            --install-cert -d $domain \
+            --key-file /root/cert/private.key \
+            --fullchain-file /root/cert/fullchain.crt
+    fi
 }
 
 # Function to generate certificate using DNS mode with Cloudflare
