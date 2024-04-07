@@ -7,27 +7,31 @@ fi
 
 # Function to generate certificate using Standalone mode
 generate_standalone_certificate() {
-    read -p "Enter domain name: " domain
     read -p "Enter email address: " email
+    read -p "Enter domain name: " domain
 
     # Generate certificate
     ~/.acme.sh/acme.sh \
         --register-account -m $email \
+    && ~/.acme.sh/acme.sh \
         --issue -d $domain --standalone \
+           --pre-hook "service nginx stop" \
+    && ~/.acme.sh/acme.sh \
         --install-cert -d $domain \
         --key-file /root/cert/private.key \
         --fullchain-file /root/cert/fullchain.crt \
-        --pre-hook "service nginx stop" \
         --post-hook "service nginx start"
 }
 
 # Function to generate certificate using DNS mode with Cloudflare
 generate_dns_certificate() {
+    read -p "Enter email address: " email
     read -p "Enter domain name: " domain
     read -p "Enter Cloudflare API Token: " cloudflare_api_token
+    read -p "Enter Cloudflare Account ID: " cf_account_id
 
-    # Export CF_Token
-    export CF_Token="$cloudflare_api_token"
+    # Export CF_Token and CF_Account_ID
+    export CF_Token="$cloudflare_api_token" && export CF_Account_ID="$cf_account_id"
 
     # Check if the domain starts with '*.'
     if [[ $domain == "*."* ]]; then
@@ -40,13 +44,12 @@ generate_dns_certificate() {
     fi
 
     # Generate certificate
-    ~/.acme.sh/acme.sh \
-        --register-account -m $email \
-        --issue --dns dns_cf \
-        $domains \
+    ~/.acme.sh/acme.sh --register-account -m $email \
+    && ~/.acme.sh/acme.sh --issue --dns dns_cf $domains \
+    && ~/.acme.sh/acme.sh \
         --installcert -d $base_domain \
         --key-file /root/cert/private.key \
-        --fullchain-file /root/cert/fullchain.crt        
+        --fullchain-file /root/cert/fullchain.crt 
 }
 
 # Main script
