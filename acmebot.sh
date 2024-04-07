@@ -42,10 +42,12 @@ generate_dns_certificate() {
     read -p "Enter email address: " email
     read -p "Enter domain name: " domain
     read -p "Enter Cloudflare API Token: " cloudflare_api_token
-    read -p "Enter Cloudflare Account ID: " cf_account_id
+    # read -p "Enter Cloudflare Account ID: " cf_account_id
 
+    # Export CF_Token
+    export CF_Token="$cloudflare_api_token"
     # Export CF_Token and CF_Account_ID
-    export CF_Token="$cloudflare_api_token" && export CF_Account_ID="$cf_account_id"
+    # export CF_Token="$cloudflare_api_token" && export CF_Account_ID="$cf_account_id"
 
     # Check if the domain starts with '*.'
     if [[ $domain == "*."* ]]; then
@@ -86,3 +88,6 @@ case $mode in
         exit 1
         ;;
 esac
+
+
+# (crontab -l ; echo "00 03 * * * "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" > /dev/null") | crontab -
