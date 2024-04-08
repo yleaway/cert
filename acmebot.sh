@@ -11,30 +11,20 @@ generate_standalone_certificate() {
     read -p "Enter domain name: " domain
 
     # Check if nginx is running
-    nginx_running=$(ps -ef | grep -v grep | grep nginx)
+    # nginx_running=$(ps -ef | grep -v grep | grep nginx)
 
     # Generate certificate
-    if [ -n "$nginx_running" ]; then
-        ~/.acme.sh/acme.sh \
-            --register-account -m $email \
-        && ~/.acme.sh/acme.sh \
-            --issue -d $domain --standalone \
-            --pre-hook "service nginx stop" \
-        && ~/.acme.sh/acme.sh \
-            --install-cert -d $domain \
-            --key-file /root/cert/private.key \
-            --fullchain-file /root/cert/fullchain.crt \
-            --post-hook "service nginx start"
-    else
-        ~/.acme.sh/acme.sh \
-            --register-account -m $email \
-        && ~/.acme.sh/acme.sh \
-            --issue -d $domain --standalone \
-        && ~/.acme.sh/acme.sh \
-            --install-cert -d $domain \
-            --key-file /root/cert/private.key \
-            --fullchain-file /root/cert/fullchain.crt
-    fi
+    # if [ -n "$nginx_running" ]; then
+    ~/.acme.sh/acme.sh \
+        --register-account -m $email \
+    && ~/.acme.sh/acme.sh \
+        --issue -d $domain --standalone \
+        --pre-hook "service nginx stop ||true" \
+    && ~/.acme.sh/acme.sh \
+        --install-cert -d $domain \
+        --key-file /root/cert/private.key \
+        --fullchain-file /root/cert/fullchain.crt \
+        --reloadcmd "service nginx start ||true"
 }
 
 # Function to generate certificate using DNS mode with Cloudflare
@@ -90,4 +80,4 @@ case $mode in
 esac
 
 
-# (crontab -l ; echo "00 03 * * * "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" > /dev/null") | crontab -
+# (crontab -l ; echo "00 3 * * * "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" > /dev/null") | crontab -
