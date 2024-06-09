@@ -113,4 +113,4 @@ case $mode in
 esac
 
 # Add cron job for acme.sh certificate renewal
-(crontab -l ; echo '00 3 * * * "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" > /dev/null') | crontab -
+# (crontab -l ; echo '00 3 * * * "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" > /dev/null') | crontab -
