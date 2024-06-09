@@ -69,8 +69,16 @@ enable_telegram_notification() {
     if [ "$enable_notification" == "yes" ]; then
         read -p "Enter your Telegram Bot token: " bot_token
         read -p "Enter your Telegram Chat ID: " chat_id
-        read -p "Choose notify level(0|1|2|3): " notify_level
-        read -p "Choose notify mode(0|1): " notify_mode
+        read -p "Choose notify level(0|1|2|3, default is 2): " notify_level
+        if [ -z "$notify_level" ]; then
+            notify_level=2
+        fi
+
+        read -p "Choose notify mode(0|1, default is 0): " notify_mode
+        if [ -z "$notify_mode" ]; then
+            notify_mode=0
+        fi
+
         echo -e "${GREEN}Telegram notification enabled with notify level $notify_level and notify mode $notify_mode.${NC}"
         
         # Export Token and ChatID
