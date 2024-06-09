@@ -15,21 +15,17 @@ generate_standalone_certificate() {
     read -p "Enter email address: " email
     read -p "Enter domain name: " domain
 
-    # Check if nginx is running
-    # nginx_running=$(ps -ef | grep -v grep | grep nginx)
-
     # Generate certificate
-    # if [ -n "$nginx_running" ]; then
     ~/.acme.sh/acme.sh \
         --register-account -m $email \
     && ~/.acme.sh/acme.sh \
         --issue -d $domain --standalone \
-        --pre-hook "service nginx stop ||true" \
+        --pre-hook "service nginx stop || true" \
     && ~/.acme.sh/acme.sh \
         --install-cert -d $domain \
         --key-file /root/cert/private.key \
         --fullchain-file /root/cert/fullchain.crt \
-        --reloadcmd "service nginx start ||true"
+        --reloadcmd "service nginx start || true"
 }
 
 # Function to generate certificate using DNS mode with Cloudflare
@@ -37,12 +33,9 @@ generate_dns_certificate() {
     read -p "Enter email address: " email
     read -p "Enter domain name: " domain
     read -p "Enter Cloudflare API Token: " cloudflare_api_token
-    # read -p "Enter Cloudflare Account ID: " cf_account_id
 
     # Export CF_Token
     export CF_Token="$cloudflare_api_token"
-    # Export CF_Token and CF_Account_ID
-    # export CF_Token="$cloudflare_api_token" && export CF_Account_ID="$cf_account_id"
 
     # Check if the domain starts with '*.'
     if [[ $domain == "*."* ]]; then
@@ -69,22 +62,24 @@ enable_telegram_notification() {
     if [ "$enable_notification" == "yes" ]; then
         read -p "Enter your Telegram Bot token: " bot_token
         read -p "Enter your Telegram Chat ID: " chat_id
-        read -p "Choose notify level(0|1|2|3, default is 2): " notify_level
-        if [ -z "$notify_level" ]; then
-            notify_level=2
-        fi
+        read -p "Choose notify level (0|1|2|3, default:2): " notify_level
+        # Use default value 2 if no input is provided
+        notify_level=${notify_level:-2}
 
-        read -p "Choose notify mode(0|1, default is 0): " notify_mode
-        if [ -z "$notify_mode" ]; then
-            notify_mode=0
-        fi
+        # Prompt the user to choose a notify mode, with default value 0 in bold
+        read -p "Choose notify mode (0|1, default:0): " notify_mode
+        # Use default value 0 if no input is provided
+        notify_mode=${notify_mode:-0}
+
+        echo "You chose notify level: $notify_level"
+        echo "You chose notify mode: $notify_mode"
 
         echo -e "${GREEN}Telegram notification enabled with notify level $notify_level and notify mode $notify_mode.${NC}"
         
         # Export Token and ChatID
-        export TELEGRAM_BOT_APITOKEN="$bot_token" \
-        && export TELEGRAM_BOT_CHATID="$chat_id" \
-        && ~/.acme.sh/acme.sh --set-notify --notify-level $notify_level --notify-mode $notify_mode --notify-hook telegram
+        export TELEGRAM_BOT_APITOKEN="$bot_token"
+        export TELEGRAM_BOT_CHATID="$chat_id"
+        ~/.acme.sh/acme.sh --set-notify --notify-level $notify_level --notify-mode $notify_mode --notify-hook telegram
     else
         echo -e "${RED}Telegram notification not enabled.${NC}"
     fi
@@ -117,5 +112,5 @@ case $mode in
         ;;
 esac
 
-
-# (crontab -l ; echo '00 3 * * * "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" > /dev/null') | crontab -
+# Add cron job for acme.sh certificate renewal
+(crontab -l ; echo '00 3 * * * "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" > /dev/null') | crontab -
