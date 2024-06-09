@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Define color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
 # Create directory if it doesn't exist
 if [ ! -d /root/cert ]; then
     mkdir -p /root/cert
@@ -58,21 +63,46 @@ generate_dns_certificate() {
         --fullchain-file /root/cert/fullchain.crt 
 }
 
+# Function to enable Telegram notification
+enable_telegram_notification() {
+    read -p "Do you want to enable Telegram notification? (yes/no): " enable_notification
+    if [ "$enable_notification" == "yes" ]; then
+        read -p "Enter your Telegram Bot token: " bot_token
+        read -p "Enter your Telegram Chat ID: " chat_id
+        read -p "Choose notify level(0|1|2|3): " notify_level
+        read -p "Choose notify mode(0|1): " notify_mode
+        echo -e "${GREEN}Telegram notification enabled with notify level $notify_level and notify mode $notify_mode.${NC}"
+        
+        # Export Token and ChatID
+        export TELEGRAM_BOT_APITOKEN="$bot_token" \
+        && export TELEGRAM_BOT_CHATID="$chat_id" \
+        && ~/.acme.sh/acme.sh --set-notify --notify-level $notify_level --notify-mode $notify_mode --notify-hook telegram
+    else
+        echo -e "${RED}Telegram notification not enabled.${NC}"
+    fi
+}
+
 # Main script
 
 # Choose certificate generation mode
 echo "Choose certificate generation mode:"
 echo "1. Standalone"
 echo "2. DNS (Cloudflare)"
-read -p "Enter your choice (1 or 2): " mode
+echo "3. Telegram notification"
+read -p "Enter your choice: " mode
 
 case $mode in
     1)
         generate_standalone_certificate
+        enable_telegram_notification
         ;;
     2)
         generate_dns_certificate
+        enable_telegram_notification
         ;;
+    3)
+        enable_telegram_notification  
+        ;;        
     *)
         echo "Invalid choice. Exiting."
         exit 1
@@ -80,4 +110,4 @@ case $mode in
 esac
 
 
-# (crontab -l ; echo "00 3 * * * "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" > /dev/null") | crontab -
+# (crontab -l ; echo '00 3 * * * "/root/.acme.sh"/acme.sh --cron --home "/root/.acme.sh" > /dev/null') | crontab -
